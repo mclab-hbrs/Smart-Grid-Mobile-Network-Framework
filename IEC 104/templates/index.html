@@ -1,0 +1,12 @@
+<!doctype html>
+<head>
+  <meta http-equiv="refresh" content="20">
+</head>
+<body>
+  <title>IEC 104 Client</title>
+  <h2>IEC 104 Values:</h2>
+
+  {% for key, value in content.items() %}
+  <b> {{key}} : {{ value }} </b></br>
+  {% endfor %}
+</body>

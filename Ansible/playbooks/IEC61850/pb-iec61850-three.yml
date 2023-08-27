@@ -1,0 +1,47 @@
+- name: Test with three sensors
+  hosts: three
+  strategy: linear 
+  #default, wait for Task to finish on all hosts
+  gather_facts: yes
+  tasks:
+   - name: Build docker container
+     shell: cd /home/rock/IEC\ 61850/ && pwd && docker-compose build iec61850_trafostation
+     register: docker_output
+
+   - name: Output from task
+     debug:
+       msg: "{{ docker_output.stdout_lines }}"
+
+   - name: Is PPP Interface up?
+     set_fact: 
+       lte_adapter: '{{ item }}'
+     loop: '{{ ansible_facts.interfaces }}'
+     when: 'item.startswith("ppp")'
+
+   - name: Start PPP Script
+     shell: pppd call quectel-ppp &
+     async: 15
+     when: lte_adapter is not defined
+
+   - name: PPP details
+     shell: ip a | grep ppp0
+     register: ppp_output
+     ignore_errors: yes
+
+   - name: Output from task
+     debug:
+       msg: "{{ ppp_output.stdout_lines }}"
+
+   - name: Execute docker container
+     shell: cd /home/rock/IEC\ 61850/ && export HOSTNAME={{ansible_hostname}} && docker-compose up -d iec61850_trafostation
+     async: 5
+     register: docker_up_output
+   - debug:
+       msg: "{{docker_up_output}}"
+
+   - shell: docker container ls
+     register: docker_output
+
+   - name: Container running output ?
+     debug:
+         msg: "Docker : {{ docker_output.stdout_lines }}"

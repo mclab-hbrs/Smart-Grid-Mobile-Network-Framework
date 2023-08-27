@@ -1,0 +1,16 @@
+version: "3.0"
+
+services:
+  amarisoft_monitoring:
+    build: .
+    hostname: amarisoft_monitoring
+    volumes:
+      - ./amarisoft_webapp.py:/amarisoft_webapp.py
+      - ./log/:/work/log
+    command: /bin/sh -c "python3 /work/amarisoft_webapp.py"
+    environment:
+      - SERVERIP=10.20.111.130 # Amarisoft IP
+      - PORT=9001 # eNB  # 9002 MME
+    # For Output
+    stdin_open: true
+    tty: true

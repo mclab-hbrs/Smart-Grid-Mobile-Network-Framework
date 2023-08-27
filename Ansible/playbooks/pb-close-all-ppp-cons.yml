@@ -1,0 +1,34 @@
+- name: Close all PPP Connections on all clients
+  hosts: sensors
+  strategy: linear
+  #default, wait for Task to finish on all hosts
+  gather_facts: yes
+  tasks:
+   - name: Is PPP Interface up?
+     set_fact:
+       lte_adapter: '{{ item }}'
+     loop: '{{ ansible_facts.interfaces }}'
+     when: 'item.startswith("ppp")'
+     ignore_errors: yes
+
+   - name: Stop PPP Script
+     shell: killall -9 pppd
+     become: yes
+     when: lte_adapter is defined and lte_adapter == "ppp0"
+     ignore_errors: yes
+
+   - name: PPP details
+     shell: ip a | grep ppp0
+     register: ppp_output
+     # grep return error when empty
+     failed_when: "ppp_output.rc == 2"
+     ignore_errors: yes
+   - debug:
+       msg: "Success"
+     when: ppp_output.stdout == ""
+   - debug:
+       msg: "{{ ppp_output.stdout }}"
+     when: ppp_output.stdout != ""
+
+
+

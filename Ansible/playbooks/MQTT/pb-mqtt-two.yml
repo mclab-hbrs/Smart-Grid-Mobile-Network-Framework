@@ -1,0 +1,71 @@
+
+- name: Test with two sensors
+  hosts: two
+  strategy: linear 
+  #default, wait for Task to finish on all hosts
+  gather_facts: yes
+  tasks:
+   - name: Build docker container
+     shell: cd /home/rock/MQTT/ && pwd && docker-compose build mqtt_trafostation
+     register: docker_output
+
+   - name: Output from task
+     debug:
+       msg: "{{ docker_output.stdout_lines }}"
+
+   - name: Is PPP Interface up?
+     set_fact: 
+       lte_adapter: '{{ item }}'
+     loop: '{{ ansible_facts.interfaces }}'
+     when: 'item.startswith("ppp")'
+
+   - name: Start PPP Script
+     shell: pppd call quectel-ppp &
+     async: 15
+     when: lte_adapter is not defined
+
+   - name: PPP details
+     shell: ip a | grep ppp0
+     register: ppp_output
+     ignore_errors: yes
+
+   - name: Output from task
+     debug:
+       msg: "{{ ppp_output.stdout_lines }}"
+
+  #  - name: Rule for TCP 1883 exist?
+  #    shell: ip rule | grep 1883
+  #    register: rule_exists_output
+  #    # ignore errors when grep returns nothing
+  #    ignore_errors: yes
+  #  - name: Adding Rule for 1883
+  #    shell: ip rule add dport 1883 table 1883 && ip rule
+  #    register: rule_output
+  #    when: rule_exists_output.stdout | length == 0
+  #  - name: Removing and adding Rule for 1883
+  #    shell: ip rule del table 1883 && ip rule add dport 1883 table 1883 && ip rule
+  #    register: rule_output
+  #    when: rule_exists_output.stdout | length > 0
+  #  - debug:
+  #      msg: "{{ rule_output }}"
+
+  #  - name: Adding Route for PPP
+  #    shell: ip route add default via 10.64.64.64 table 1883 && route
+  #    register: route_output
+  #    ignore_errors: yes
+  #  - debug:
+  #      msg: "{{ route_output.stdout_lines }}"
+
+   - name: Execute docker container
+     shell: cd /home/rock/MQTT/ && export HOSTNAME={{ansible_hostname}} && docker-compose up -d mqtt_trafostation
+     async: 5
+     register: docker_up_output
+   - debug:
+       msg: "{{docker_up_output}}"
+
+   - shell: docker container ls
+     register: docker_output
+
+   - name: Container running output ?
+     debug:
+         msg: "Docker : {{ docker_output.stdout_lines }}"

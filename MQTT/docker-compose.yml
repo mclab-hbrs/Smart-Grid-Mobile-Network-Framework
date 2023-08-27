@@ -1,0 +1,53 @@
+version: "3.0"
+
+services:
+  mqtt_broker:
+    image: eclipse-mosquitto
+    hostname: mqtt_broker
+    # Sometimes the container exit with code 139
+    restart: on-failure
+    volumes:
+      - ./mosquitto:/mosquitto
+      - ./mosquitto/config:/mosquitto/config
+      - ./mosquitto/data:/mosquitto/data
+      - ./mosquitto/log:/mosquitto/log
+    ports:
+      - 1883:1883
+      - 9001:9001
+
+  mqtt_trafostation:
+    build: .
+    hostname: mqtt_trafostation
+    volumes:
+      - ./Trafostation.py:/work/Trafostation.py
+      - ../sample_data.csv:/work/sample_data.csv
+    #depends_on:
+    #  - mqtt_broker
+    working_dir: /work
+    command: /bin/sh -c "python3 /work/Trafostation.py"
+    environment:
+      - SERVERIP=10.20.111.241
+      - TCPPORT=1883
+      - CLIENT_NAME=${HOSTNAME}
+    # For Output
+    stdin_open: true
+    tty: true
+
+  mqtt_scada:
+    build: .
+    hostname: mqtt_scada
+    volumes:
+      - ./SCADA.py:/work/SCADA.py
+      - ./templates/index.html:/work/templates/index.html
+    ports:
+      - 5000:5000
+    depends_on:
+      - mqtt_broker
+    working_dir: /work
+    command: /bin/sh -c "python3 /work/SCADA.py"
+    environment:
+      - SERVERIP=mqtt_broker
+      - TCPPORT=1883
+      - CLIENT_NAME=SCADA
+      # subscribe to sensor 1-4 in code
+      - TRAFO_NAME=mallsensor

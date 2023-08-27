@@ -1,0 +1,24 @@
+#https://stackoverflow.com/questions/62184206/ansible-plybook-script-for-destroy-all-containers-and-remove-images-from-remote
+- name: Stop all docker containers
+  hosts: sensors
+  strategy: linear
+  #default, wait for Task to finish on all hosts
+  gather_facts: false
+  tasks:
+    - name: Get running containers
+      docker_host_info:
+        containers: yes
+      register: docker_info
+
+    - name: Stop and remove running containers
+      docker_container:
+        name: "{{ item }}"
+        state: absent
+      loop: "{{ docker_info.containers | map(attribute='Id') | list }}"
+
+    - shell: docker container ls -a
+      register: docker_output
+
+    - name: Container running output ?
+      debug:
+        msg: "Docker : {{ docker_output.stdout_lines }}"

@@ -1,0 +1,56 @@
+# /etc/ppp/peers/quectel-chat-connect
+ABORT "BUSY"
+ABORT "NO CARRIER"
+ABORT "NO DIALTONE"
+ABORT "ERROR"
+ABORT "NO ANSWER"
+TIMEOUT 200
+"" AT
+# Disable Output
+OK ATE0 
+
+OK ATI
+OK AT+CSUB
+OK AT+CSQ
+OK AT+CPIN?
+OK AT+COPS?
+OK AT+CREG?
+OK AT+CGDCONT?
+
+# Band 20 (Telekom, 800MHz) auswählen
+#OK AT+QCFG="band",0,80000,80000
+
+# Band 72 (450 MHz) auswählen
+OK AT+QCFG="band",0,800000000000000000,800000000000000000
+
+# Band Info
+OK AT+QNWINFO
+
+# Networkscan
+OK AT+COPS=?
+
+# Insert the APN provided by your network operator, default apn is 3gnet
+# OK AT+CGDCONT=1,"IP","default"
+# Activate PDP Context | +CME ERROR: 30 = The ME has forced a context deactivation.
+# OK AT+CGACT=1,1
+
+# Set operator \_ for blank, not needed in busybox
+OK AT+COPS=0,0,"Amarisoft\_Network",8
+
+# Manuell operator selection with automatic fallback
+# CME 22 = Not found
+# or OK AT+COPS=0,2,"00101",8 
+
+OK AT+CREG?
+# 0 Disable network registration unsolicited result code
+# 1 Enable network registration unsolicited result code 
+# 0,2 = Not registered, but MT is currently trying to attach the network
+
+# Telekom 1NCE APN
+# OK AT+CGDCONT=2,"IPV4V6","seairis.staging.eu.1nce.net"
+# OK AT+CGACT=1,2
+# OK AT+COPS=0,0,"Telekom.de",0,0
+# or AT+COPS=4,2,"26201",8 
+
+OK ATD*99#
+CONNECT

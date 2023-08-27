@@ -1,0 +1,49 @@
+[all:vars]
+ansible_connection=ssh
+ansible_user=root
+ansible_ssh_pass=Testen123!
+ansible_python_interpreter=auto_silent
+ansible_ssh_extra_args='-o StrictHostKeyChecking=no'
+
+[servers]
+server
+
+[sensors]
+sensor1
+sensor2
+sensor3
+sensor4
+sensor5
+# 192.168.178.10
+# 192.168.178.11
+# 192.168.178.12
+# 192.168.178.13
+# 192.168.178.14
+
+[one]
+sensor1
+# 192.168.178.10
+
+[two]
+sensor1
+sensor2
+# 192.168.178.10
+# 192.168.178.11
+
+[three]
+sensor1
+sensor2
+sensor3
+# 192.168.178.10
+# 192.168.178.11
+# 192.168.178.12
+
+[four]
+sensor1
+sensor2
+sensor3
+sensor4
+# 192.168.178.10
+# 192.168.178.11
+# 192.168.178.12
+# 192.168.178.13

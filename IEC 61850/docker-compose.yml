@@ -1,0 +1,38 @@
+version: "3.0"
+
+services:
+  iec61850_trafostation:
+    build: .
+    hostname: iec61850_trafostation
+    volumes:
+      - ./Trafostation.py:/work/Trafostation.py
+      - ../sample_data.csv:/work/sample_data.csv
+    ports:
+      - "61850:61850"
+    working_dir: /work
+    command: /bin/sh -c "python3 /work/Trafostation.py"
+    environment:
+      - IedModelName=${HOSTNAME}
+      - DeviceName=Trafo
+    # For Output
+    stdin_open: true
+    tty: true
+    
+  iec61850_scada:
+    build: .
+    hostname: iec61850_scada
+    volumes:
+      - ./SCADA.py:/work/SCADA.py
+      - ./templates/index.html:/work/templates/index.html
+    #depends_on:
+    #  - iec61850_server
+    ports:
+      - "5000:5000"
+    working_dir: /work
+    command: /bin/sh -c "python3 /work/SCADA.py" # flask --app --debugger /work/SCADA.py run"
+    environment:
+      - SERVERIP=10.20.111.234,10.20.111.236,10.20.111.237,10.20.111.235,10.20.111.238 #iec61850_trafostation
+      - TCPPORT=61850
+    # For Output
+    stdin_open: true
+    tty: true

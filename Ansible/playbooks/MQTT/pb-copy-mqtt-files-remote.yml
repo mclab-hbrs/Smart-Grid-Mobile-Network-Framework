@@ -1,0 +1,38 @@
+- name: Copy MQTT Files to all clients
+  hosts: sensors
+  strategy: linear
+  #default, wait for Task to finish on all hosts
+  gather_facts: yes
+  tasks:
+    - name: Delete old folder
+      file:
+        state: absent
+        path: /home/rock/MQTT/
+
+    - name: Copy MQTT folder
+      # synchronize (rsync) is way quicker than copy https://stackoverflow.com/questions/27985334/why-is-copying-a-directory-with-ansible-so-slow
+      synchronize:
+        src: /home/lucas/masterarbeit/MQTT
+        dest: /home/rock
+
+    - name: ls on folder
+      shell: ls /home/rock/MQTT
+      register: output_mqtt
+    - debug:
+        msg: "{{ output_mqtt.stdout_lines }}"
+
+    - name: Delete old sample data file
+      file:
+        state: absent
+        path: /home/rock/sample_data.csv
+
+    - name: Copy sample data file
+      synchronize:
+        src: /home/lucas/masterarbeit/sample_data.csv
+        dest: /home/rock/sample_data.csv
+    
+    - name: ls on sample_data location
+      shell: ls /home/rock
+      register: output_data
+    - debug:
+        msg: "{{ output_data.stdout_lines }}"

@@ -1,0 +1,9 @@
+- name: Copy all pcaps back
+  hosts: server
+  gather_facts: yes
+  tasks:
+     - name: Fetch stuff from the remote and save to local
+       synchronize:
+          src: /root/pcaps/
+          dest: /home/lucas/masterarbeit/pcaps/
+          mode: pull
